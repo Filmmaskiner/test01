@@ -3,8 +3,8 @@
 <div style="display: block-inline; float:left; padding: 10px;"><canvas id="ctx" width="600" height="600" style="border: 1px solid #ccc;"></canvas></div>
 <div style="width: 210px; display: block-inline; float: left; padding: 10px;">
 <img src="img.jpg" id="source" width="200"><br>
-img w: <input type="number" id="imagew" min="1" max="20" value="1" class="param"><br>
-img h: <input type="number" id="imageh" min="1" max="20" value="1" class="param"><br>
+img w: <input type="range" id="imagew" min="1" max="20" value="1" class="param"><br>
+img h: <input type="range" id="imageh" min="1" max="20" value="1" class="param"><br>
 <table>
 <tr>
 <td>
@@ -15,24 +15,24 @@ img h: <input type="number" id="imageh" min="1" max="20" value="1" class="param"
 <tr>
 <td rowspan="2" style="font-size: 20pt;">x
 <td>osc
-<td><input type="number" value="20" id="imgxrad1" class="param">
-<td><input type="number" value="20" id="imgxfreq1" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgxrad1" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgxfreq1" class="param">
 </tr>
 <tr>
 <td>mod
-<td><input type="number" value="20" id="imgxrad2" class="param">
-<td><input type="number" value="20" id="imgxfreq2" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgxrad2" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgxfreq2" class="param">
 </tr>
 <tr>
 <td rowspan="2" style="font-size: 20pt;">y
 <td>osc
-<td><input type="number" value="20" id="imgyrad1" class="param">
-<td><input type="number" value="20" id="imgyfreq1" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgyrad1" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgyfreq1" class="param">
 </tr>
 <tr>
 <td>mod
-<td><input type="number" value="20" id="imgyrad2" class="param">
-<td><input type="number" value="20" id="imgyfreq2" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgyrad2" class="param">
+<td><input type="range" min="0" max="100" value="20" id="imgyfreq2" class="param">
 </tr>
 </table>
 <input type="button" onClick="javascript:drawit()" value="FORCE">
