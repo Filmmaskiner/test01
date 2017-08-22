@@ -1,0 +1,112 @@
+<a href="index.html">back</a><br>
+<div style="height: 620px;">
+<div style="display: block-inline; float:left; padding: 10px;"><canvas id="ctx" width="600" height="600" style="border: 1px solid #ccc;"></canvas></div>
+<div style="width: 210px; display: block-inline; float: left; padding: 10px;">
+<img src="img.jpg" id="source" width="200"><br>
+img w: <input type="number" id="imagew" min="1" max="20" value="1" class="param"><br>
+img h: <input type="number" id="imageh" min="1" max="20" value="1" class="param"><br>
+<table>
+<tr>
+<td>
+<td>
+<td>Amp
+<td>Freq.
+</tr>
+<tr>
+<td rowspan="2" style="font-size: 20pt;">x
+<td>osc
+<td><input type="number" value="20" id="imgxrad1" class="param">
+<td><input type="number" value="20" id="imgxfreq1" class="param">
+</tr>
+<tr>
+<td>mod
+<td><input type="number" value="20" id="imgxrad2" class="param">
+<td><input type="number" value="20" id="imgxfreq2" class="param">
+</tr>
+<tr>
+<td rowspan="2" style="font-size: 20pt;">y
+<td>osc
+<td><input type="number" value="20" id="imgyrad1" class="param">
+<td><input type="number" value="20" id="imgyfreq1" class="param">
+</tr>
+<tr>
+<td>mod
+<td><input type="number" value="20" id="imgyrad2" class="param">
+<td><input type="number" value="20" id="imgyfreq2" class="param">
+</tr>
+</table>
+<input type="button" onClick="javascript:drawit()" value="FORCE">
+</div>
+</div>
+
+<script type="text/javascript" src="jquery-1.4.4.js"></script>
+<script>
+var canvas = document.getElementById("ctx");
+var ctx = canvas.getContext("2d");
+
+/*ctx.drawImage(img,0,0);
+var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);*/
+
+/*img = new Image();
+img.src = 'img.jpg'; */
+
+function resetCanvas(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+var imagew = 1; // for better vertical density
+var imageh = 1; // for better horisontal density
+
+function drawit(){
+	resetCanvas();
+	imagew = parseInt(document.getElementById("imagew").value);
+	imageh = parseInt(document.getElementById("imageh").value);
+	imgxrad1 = parseInt(document.getElementById("imgxrad1").value);
+	imgyrad1 = parseInt(document.getElementById("imgyrad1").value);
+	imgxfreq1 = parseInt(document.getElementById("imgxfreq1").value);
+	imgyfreq1 = parseInt(document.getElementById("imgyfreq1").value);
+	imgxrad2 = parseInt(document.getElementById("imgxrad2").value);
+	imgyrad2 = parseInt(document.getElementById("imgyrad2").value);
+	imgxfreq2 = parseInt(document.getElementById("imgxfreq2").value);
+	imgyfreq2 = parseInt(document.getElementById("imgyfreq2").value);
+	var img=document.getElementById("source");
+//	alert(img);
+//	ctx.drawImage(img,0,0);
+	var oscx = new Array();
+	var oscy = new Array();
+
+	for(var l = 0; l < 400; l++){
+		oscx.push(imgxrad1 + imgxrad1 * Math.sin(l/imgxfreq1) + imgxrad2 + imgxrad2 * Math.sin(l/imgxfreq2));
+	}
+	for(var p = 0; p < 400; p++){
+		oscy.push(imgyrad1 + imgyrad1 * Math.cos(p/imgyfreq1) + imgyrad2 + imgyrad2 * Math.cos(p/imgyfreq2));
+	}
+
+	for(var l = 0; l < 400; l++){
+		for(var p = 0; p < 400; p++){
+			/* FIRST */
+			var imagex = p + oscx[l];
+			var imagey = l + oscy[p];
+			/* THEN CLIP */
+			var clipx = p; // * 2 * Math.sin((l)/10); // multiply to compress
+			var clipy = l;
+			var clipw = 1;
+			var cliph = 1;
+			/* THEN STRETCH */
+			ctx.drawImage(img, clipx, clipy, clipw, cliph, imagex, imagey, imagew, imageh);
+		}
+	}
+}
+
+drawit();
+//document.getElementById("img").onLoad=drawit();
+</script>
+<script>
+  $(function() {
+    $(".param").change(function(){
+//	alert(clipw);
+	drawit();
+    });
+  });
+</script>
+</div>
