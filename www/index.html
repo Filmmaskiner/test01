@@ -1,0 +1,332 @@
+<html>
+<head>
+<title>Sketchpad</title>
+
+<script type="text/javascript">
+var loopinterval = 50;
+
+// Variables for referencing the canvas and 2dcanvas context
+var canvas,ctx;
+
+// Variables to keep track of the mouse position and left-button status 
+var mouseX,mouseY,mouseDown=0;
+
+// Variables to keep track of the touch position
+var touchX,touchY;
+
+var cx = cy = 770/2;
+
+var xcoors = new Array();
+var ycoors = new Array();
+var rcoors = new Array();
+var acoors = new Array();
+var tcoors = new Array();
+var ccoors = new Array(); // color
+var licoors = new Array(); // loop interval
+var dircoors = new Array(); // loop interval
+var scoors = new Array(); // size of stroke
+
+var direction = true;
+
+// Draws a dot at a specific position on the supplied canvas name
+// Parameters are: A canvas context, the x position, the y position, the size of the dot
+function drawDot(ctx,x,y,size) {
+	/* CALC ANGLE */
+	Math.abs(cx - x)
+
+	var xpos1 = cx;
+	var ypos1 = cy;
+	var xpos2 = x;
+	var ypos2 = y;
+
+	var deltax = ypos2 - ypos1;
+	var deltay = xpos2 - xpos1;
+//	var angle = Math.atan(deltay / deltax) + Math.PI;
+	var angle = (Math.atan2(-deltay, deltax) + Math.PI/2); // * 180/Math.PI;
+	var radius = Math.sqrt(Math.pow(deltax, 2) + Math.pow(deltay, 2));
+	var color = document.getElementById("colorsel").value;
+	var loopinterval = document.getElementById("loopint").value;
+	var size = parseInt(document.getElementById("size").value);
+
+	xcoors.push(x);
+	ycoors.push(y);
+	rcoors.push(radius);
+	acoors.push(angle);
+	tcoors.push(frameno);
+	ccoors.push(color);
+	licoors.push(loopinterval);
+	dircoors.push(direction);
+	scoors.push(size);
+}
+
+
+function drawDots(ctx, frameno){
+	for(var p = 0; p < xcoors.length; p++){
+		ctx.beginPath();
+		var frame = frameno % licoors[p];
+		if(dircoors[p]){
+			var forskydning = (frame-tcoors[p])*(2*Math.PI / licoors[p]);
+		}else{
+			var forskydning = -(frame-tcoors[p])*(2*Math.PI / licoors[p]);
+		}
+		var dotx = cx + rcoors[p] * Math.cos(acoors[p] + forskydning);
+		var doty = cy + rcoors[p] * Math.sin(acoors[p] + forskydning);
+		ctx.arc(dotx, doty, scoors[p], 0, Math.PI*2, true); 
+		ctx.fillStyle = ccoors[p];
+		ctx.closePath();
+		ctx.fill();
+	}
+}
+
+
+// Clear the canvas context using the canvas width and height
+function clearCanvas(canvas,ctx) {
+	ctx.beginPath();
+	ctx.fillStyle ="white";
+	ctx.rect(0, 0, canvas.width, canvas.height);
+	ctx.fill();
+}
+
+function overlayCanvas(canvas,ctx){
+	var w = canvas.width;
+	var h = canvas.height;
+	ctx.beginPath();
+	ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, 2*Math.PI, true);
+	ctx.lineTo(w, h);
+	ctx.lineTo(0, h);
+	ctx.lineTo(0, 0);
+	ctx.lineTo(w, 0);
+	ctx.lineTo(w, h/2);
+	ctx.fillStyle ="black";
+	ctx.fill();
+}
+
+// Keep track of the mouse button being pressed and draw a dot at current location
+function sketchpad_mouseDown() {
+	mouseDown=1;
+	drawDot(ctx,mouseX,mouseY,12);
+}
+
+// Keep track of the mouse button being released
+function sketchpad_mouseUp() {
+	mouseDown=0;
+}
+
+// Keep track of the mouse position and draw a dot if mouse button is currently pressed
+function sketchpad_mouseMove(e) { 
+	// Update the mouse co-ordinates when moved
+	getMousePos(e);
+
+	// Draw a dot if the mouse button is currently being pressed
+	if (mouseDown==1) {
+		drawDot(ctx,mouseX,mouseY,12);
+	}
+}
+
+// Get the current mouse position relative to the top-left of the canvas
+function getMousePos(e) {
+	if (!e)
+	var e = event;
+
+	if (e.offsetX) {
+		mouseX = e.offsetX;
+		mouseY = e.offsetY;
+	}
+	else if (e.layerX) {
+		mouseX = e.layerX;
+		mouseY = e.layerY;
+	}
+}
+
+// Draw something when a touch start is detected
+function sketchpad_touchStart() {
+	// Update the touch co-ordinates
+	getTouchPos();
+
+	drawDot(ctx,touchX,touchY,12);
+
+	// Prevents an additional mousedown event being triggered
+	event.preventDefault();
+}
+
+// Draw something and prevent the default scrolling when touch movement is detected
+function sketchpad_touchMove(e) { 
+	// Update the touch co-ordinates
+	getTouchPos(e);
+
+	// During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
+	drawDot(ctx,touchX,touchY,12); 
+
+	// Prevent a scrolling action as a result of this touchmove triggering.
+	event.preventDefault();
+}
+
+// Get the touch position relative to the top-left of the canvas
+// When we get the raw values of pageX and pageY below, they take into account the scrolling on the page
+// but not the position relative to our target div. We'll adjust them using "target.offsetLeft" and
+// "target.offsetTop" to get the correct values in relation to the top left of the canvas.
+function getTouchPos(e) {
+	if (!e)
+	var e = event;
+
+	if(e.touches) {
+		if (e.touches.length == 1) { // Only deal with one finger
+			var touch = e.touches[0]; // Get the information for finger #1
+			touchX=touch.pageX-touch.target.offsetLeft;
+			touchY=touch.pageY-touch.target.offsetTop;
+		}
+	}
+}
+
+
+// Set-up the canvas and add our event handlers after the page has loaded
+function init() {
+	// Get the specific canvas element from the HTML document
+	canvas = document.getElementById('sketchpad');
+
+	// If the browser supports the canvas tag, get the 2d drawing context for this canvas
+	if (canvas.getContext)
+	ctx = canvas.getContext('2d');
+
+	// Check that we have a valid context to draw on/with before adding event handlers
+	if (ctx) {
+		// React to mouse events on the canvas, and mouseup on the entire document
+		canvas.addEventListener('mousedown', sketchpad_mouseDown, false);
+		canvas.addEventListener('mousemove', sketchpad_mouseMove, false);
+		window.addEventListener('mouseup', sketchpad_mouseUp, false);
+
+		// React to touch events on the canvas
+		canvas.addEventListener('touchstart', sketchpad_touchStart, false);
+		canvas.addEventListener('touchmove', sketchpad_touchMove, false);
+	}
+}
+
+
+function hslToRgb(h, s, l){
+	var r, g, b;
+
+	if(s == 0){
+		r = g = b = l; // achromatic
+	}else{
+		var hue2rgb = function hue2rgb(p, q, t){
+			if(t < 0) t += 1;
+			if(t > 1) t -= 1;
+			if(t < 1/6) return p + (q - p) * 6 * t;
+			if(t < 1/2) return q;
+			if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+			return p;
+		}
+
+		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		var p = 2 * l - q;
+		r = hue2rgb(p, q, h + 1/3);
+		g = hue2rgb(p, q, h);
+		b = hue2rgb(p, q, h - 1/3);
+	}
+	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+function componentToHex(c) {
+	var hex = c.toString(16);
+	return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function hsl2hex(h, s, l){
+	colorsample = hslToRgb(h, s, l);
+	colhex = rgbToHex(colorsample[0], colorsample[1], colorsample[2]);
+	return colhex;
+}
+
+function updateColor(){
+	var hue = document.getElementById("huerange").value;
+	document.getElementById("colorsel").value = hsl2hex(hue, 0.5, 0.5);
+}
+
+var fps = 70;
+var frameno = 0;
+
+function sequence1() {
+	setTimeout(function () {
+		clearCanvas(canvas, ctx);
+		frameno = frameno + 1;
+
+		drawDots(ctx, frameno);
+
+		overlayCanvas(canvas, ctx);
+
+//		if((frameno) < loopinterval){
+		        sequence1();
+/*		}else{
+			frameno = 0;
+			sequence1();
+		} */
+	}, fps);
+}
+
+sequence1();
+</script>
+
+<style>
+/* Some CSS styling */
+#sketchpadapp {
+	/* Prevent nearby text being highlighted when accidentally dragging mouse outside confines of the canvas */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.leftside {
+	float:left;
+	width:220px;
+	height:285px;
+	background-color:#def;
+	padding:10px;
+	border-radius:4px;
+}
+.rightside {
+	float:left;
+	margin-left:10px;
+}
+#sketchpad {
+	float:left;
+	height:770px;
+	width:770px;
+	border:2px solid #888;
+	border-radius:4px;
+	position:relative; /* Necessary for correct mouse co-ords in Firefox */
+}
+#clearbutton {
+	font-size: 15px;
+	padding: 10px;
+	-webkit-appearance: none;
+	background: #eee;
+	border: 1px solid #888;
+}
+</style>
+</head>
+
+<body onload="init()">
+<div style="float: left; width: 300px;">
+<a href="slitscan.html">TRY SLITSCAN</a><br>
+<!--<input type="submit" value="Clear Sketchpad" id="clearbutton" onclick="clearCanvas(canvas,ctx);"><br>-->
+Loop interval: <input type="number" id="loopint" value="80" min="1" max="180"> <br>
+Direction:<br>
+<input type="button" onClick="javascript:direction=true;" value="Clock"><br>
+<input type="button" onClick="javascript:direction=false;" value="Anti-clock"><br>
+
+Size: <input type="range" min="1" max="50" step="1" id="size"><br>
+
+Hue: <input type="range" min="0" max="1" step="0.01" id="huerange" onChange="javascript:updateColor();"><br>
+<input type="button" onClick="javascript:updateColor();" value="Force">
+<input type="color" id="colorsel">
+
+</div>
+<canvas id="sketchpad" height="800" width="800"></canvas>
+</body>
+</html>
